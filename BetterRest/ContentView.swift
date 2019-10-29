@@ -34,38 +34,42 @@ struct ContentView: View {
                         .labelsHidden()
                         .datePickerStyle(WheelDatePickerStyle())
                 }
-                VStack(alignment: .leading, spacing: 0){
-                    Text("Desired amount of sleep")
-                        .font(.headline)
-                    
+                Section(header : Text("Desired amount of sleep")){
                     Stepper(value : $sleepAmount, in: 4...12, step: 0.25){
                         Text("\(sleepAmount, specifier: "%g") hours")
                     }
                 }
-                VStack(alignment: .leading, spacing: 0){
-                    Text("Daily coffee intake")
-                        .font(.headline)
-                    
-                    Stepper(value : $coffeeAmount, in: 1...20){
-                        if coffeeAmount == 1 {
-                            Text("1 cup")
-                        } else{
-                            Text("\(coffeeAmount) cups")
+                
+                Section(header : Text("Daily coffee intake")){
+                    Picker("Number of cups", selection: $coffeeAmount){
+                        ForEach(1..<21){
+                            if $0 == 1{
+                                Text("1 cup")
+                            } else{
+                                Text("\($0) cups")
+                            }
+                            
                         }
                     }
                 }
+                
+                Group{
+                    HStack(alignment : .center){
+                        Text("Your ideal bed time is \(estimatedBedTime)")
+                        .foregroundColor(.green)
+                            .font(.headline)
+                    }
+                    
+                }
             }
             .navigationBarTitle("BetterRest")
-            .navigationBarItems(trailing: Button(action : calculateBedtime){
-                Text("Calculate")
-            })
             .alert(isPresented: $isShown) {
                 Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .default(Text("OK")))
             }
         }
     }
     
-    func calculateBedtime(){
+    private var estimatedBedTime : String{
         let model = SleepCalculator()
         let dateComponent = Calendar.current.dateComponents([.hour, .minute], from: wakeUp)
         let hour = (dateComponent.hour ?? 0) * 60 * 60
@@ -78,15 +82,15 @@ struct ContentView: View {
             let formatter = DateFormatter()
             formatter.timeStyle = .short
             
-            alertMessage = formatter.string(from: sleepTime)
-            alertTitle = "Your ideal bedtime is..."
+            return formatter.string(from: sleepTime)
         } catch{
             alertTitle = "Error"
             alertMessage = "Sorry, there was a problem calculating your bedtime."
+            isShown = true
+            return ""
         }
-        
-        isShown = true
     }
+    
 }
 
 struct ContentView_Previews: PreviewProvider {
